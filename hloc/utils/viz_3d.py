@@ -59,7 +59,7 @@ def init_figure(height: int = 800) -> go.Figure:
 def plot_points(
         fig: go.Figure,
         pts: np.ndarray,
-        color: str = 'rgba(255, 0, 0, 1)',
+        color = 'rgba(255, 0, 0, 1)',
         ps: int = 2,
         colorscale: Optional[str] = None,
         name: Optional[str] = None):
@@ -152,11 +152,13 @@ def plot_reconstruction(
         rec: pycolmap.Reconstruction,
         max_reproj_error: float = 6.0,
         color: str = 'rgb(0, 0, 255)',
+        file_points3D: Optional[dict] = None,
         name: Optional[str] = None,
         min_track_length: int = 2,
         points: bool = True,
         cameras: bool = True,
-        cs: float = 1.0):
+        cs: float = 1.0,
+        ps: float = 1.0):
     # Filter outliers
     bbs = rec.compute_bounding_box(0.001, 0.999)
     # Filter points, use original reproj error here
@@ -166,6 +168,16 @@ def plot_reconstruction(
                             p3D.error <= max_reproj_error and
                             p3D.track.length() >= min_track_length)]
     if points:
-        plot_points(fig, np.array(xyzs), color=color, ps=1, name=name)
+        if file_points3D is not None:
+            rgb = [file_points3D[_].rgb for _, p3D in rec.points3D.items() if (
+                                    (p3D.xyz >= bbs[0]).all() and
+                                    (p3D.xyz <= bbs[1]).all() and
+                                    p3D.error <= max_reproj_error and
+                                    p3D.track.length() >= min_track_length)]
+            template = "rgb(%d, %d, %d)"
+            colors = [template % (r, g, b) for r, g, b in rgb]
+            plot_points(fig, np.array(xyzs), color=colors, ps=ps, name=name)
+        else:
+            plot_points(fig, np.array(xyzs), color=color, ps=ps, name=name)
     if cameras:
         plot_cameras(fig, rec, color=color, legendgroup=name, size=cs)
