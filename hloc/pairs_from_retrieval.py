@@ -65,7 +65,7 @@ def pairs_from_score_matrix(scores: torch.Tensor,
 
 def main(descriptors, output, num_matched,
          query_prefix=None, query_list=None,
-         db_prefix=None, db_list=None, db_model=None, db_descriptors=None):
+         db_prefix=None, db_list=None, db_model=None, db_descriptors=None, device='cuda'):
     logger.info('Extracting image pairs from a retrieval database.')
 
     # We handle multiple reference feature files.
@@ -88,7 +88,7 @@ def main(descriptors, output, num_matched,
         raise ValueError('Could not find any database image.')
     query_names = parse_names(query_prefix, query_list, query_names_h5)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     db_desc = get_descriptors(db_names, db_descriptors, name2db)
     query_desc = get_descriptors(query_names, descriptors)
     sim = torch.einsum('id,jd->ij', query_desc.to(device), db_desc.to(device))

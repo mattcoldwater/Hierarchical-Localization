@@ -67,7 +67,8 @@ def main(conf: Dict,
          export_dir: Optional[Path] = None,
          matches: Optional[Path] = None,
          features_ref: Optional[Path] = None,
-         overwrite: bool = False) -> Path:
+         overwrite: bool = False,
+         device: str = 'cuda') -> Path:
 
     if isinstance(features, Path) or Path(features).exists():
         features_q = features
@@ -90,7 +91,7 @@ def main(conf: Dict,
     else:
         features_ref = [features_ref]
 
-    match_from_paths(conf, pairs, matches, features_q, features_ref, overwrite)
+    match_from_paths(conf, pairs, matches, features_q, features_ref, overwrite, device=device)
 
     return matches
 
@@ -101,7 +102,8 @@ def match_from_paths(conf: Dict,
                      match_path: Path,
                      feature_path_q: Path,
                      feature_paths_refs: Path,
-                     overwrite: bool = False) -> Path:
+                     overwrite: bool = False,
+                     device: str = 'cuda') -> Path:
     logger.info('Matching local features with configuration:'
                 f'\n{pprint.pformat(conf)}')
 
@@ -117,7 +119,7 @@ def match_from_paths(conf: Dict,
     pairs = parse_retrieval(pairs_path)
     pairs = [(q, r) for q, rs in pairs.items() for r in rs]
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     Model = dynamic_load(matchers, conf['model']['name'])
     model = Model(conf['model']).eval().to(device)
 
