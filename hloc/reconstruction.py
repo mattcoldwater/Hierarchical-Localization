@@ -22,13 +22,16 @@ def create_empty_db(database_path):
     db.close()
 
 
-def import_images(image_dir, database_path, camera_mode, image_list=None):
+def import_images(image_dir, database_path, camera_mode, camera_model, image_list=None):
+    """
+    SIMPLE_PINHOLE PINHOLE SIMPLE_RADIAL RADIAL OPENCV OPENCV_FISHEYE FULL_OPENCV FOV SIMPLE_RADIAL_FISHEYE RADIAL_FISHEYE
+    """
     logger.info('Importing images into the database...')
     images = list(image_dir.iterdir())
     if len(images) == 0:
         raise IOError(f'No images found in {image_dir}.')
     with pycolmap.ostream():
-        pycolmap.import_images(database_path, image_dir, camera_mode,
+        pycolmap.import_images(database_path, image_dir, camera_mode, camera_model=camera_model,
                                image_list=image_list or [])
 
 
@@ -78,6 +81,7 @@ def run_reconstruction(sfm_dir, database_path, image_dir, verbose=False):
 def main(sfm_dir, image_dir, pairs, features, matches,
          camera_mode=pycolmap.CameraMode.AUTO, verbose=False,
          skip_geometric_verification=False, min_match_score=None,
+         camera_model="SIMPLE_RADIAL",
          image_list: Optional[List[str]] = None):
 
     assert features.exists(), features
@@ -88,7 +92,7 @@ def main(sfm_dir, image_dir, pairs, features, matches,
     database = sfm_dir / 'database.db'
 
     create_empty_db(database)
-    import_images(image_dir, database, camera_mode, image_list)
+    import_images(image_dir, database, camera_mode, camera_model, image_list)
     image_ids = get_image_ids(database)
     import_features(image_ids, database, features)
     import_matches(image_ids, database, pairs, matches,
